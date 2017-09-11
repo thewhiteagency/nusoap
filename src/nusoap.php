@@ -2282,8 +2282,8 @@ class soap_transport_http extends nusoap_base
      */
     function setCurlOption($option, $value)
     {
-        $this->debug("setCurlOption option=$option, value=");
-        $this->appendDebug($this->varDump($value));
+        // $this->debug("setCurlOption option=$option, value=");
+        //$this->appendDebug($this->varDump($value));
         curl_setopt($this->ch, $option, $value);
     }
 
@@ -2530,7 +2530,7 @@ class soap_transport_http extends nusoap_base
                 // recent versions of cURL turn on peer/host checking by default,
                 // while PHP binaries are not compiled with a default location for the
                 // CA cert bundle, so disable peer/host checking.
-                //$this->setCurlOption(CURLOPT_CAINFO, 'f:\php-4.3.2-win32\extensions\curl-ca-bundle.crt');		
+                //$this->setCurlOption(CURLOPT_CAINFO, 'f:\php-4.3.2-win32\extensions\curl-ca-bundle.crt');
                 $this->setCurlOption(CURLOPT_SSL_VERIFYPEER, 0);
                 $this->setCurlOption(CURLOPT_SSL_VERIFYHOST, 0);
 
@@ -2986,7 +2986,7 @@ class soap_transport_http extends nusoap_base
             if ($cookie_str != '') {
                 $curl_headers[] = 'Cookie: ' . $cookie_str;
             }
-            $this->setCurlOption(CURLOPT_HTTPHEADER, $curl_headers);
+
             $this->debug('set cURL HTTP headers');
             if ($this->request_method == "POST") {
                 $this->setCurlOption(CURLOPT_POST, 1);
@@ -2996,8 +2996,16 @@ class soap_transport_http extends nusoap_base
             }
             // insert custom user-set cURL options
             foreach ($this->ch_options as $key => $val) {
-                $this->setCurlOption($key, $val);
+                if ($key === CURLOPT_HTTPHEADER) {
+                    foreach ($val as $header) {
+                        $curl_headers[] = $header;
+                    }
+                } else {
+                    $this->setCurlOption($key, $val);
+                }
             }
+
+            $this->setCurlOption(CURLOPT_HTTPHEADER, $curl_headers);
 
             $this->debug('set cURL payload');
             return TRUE;
@@ -7532,7 +7540,7 @@ class nusoap_client extends nusoap_base
             // no WSDL
             //$this->namespaces['ns1'] = $namespace;
             $nsPrefix = 'ns' . rand(1000, 9999);
-            // serialize 
+            // serialize
             $payload = '';
             if (is_string($params)) {
                 $this->debug("serializing param string for operation $operation");
@@ -7750,6 +7758,7 @@ class nusoap_client extends nusoap_base
                     //$this->response = $http->incoming_payload;
                     //} else
                     $this->responseData = $http->sendHTTPS($msg, $timeout, $response_timeout, $this->cookies);
+
                 } else {
                     $this->setError('no http/s in endpoint url');
                 }
@@ -7850,7 +7859,7 @@ class nusoap_client extends nusoap_base
      */
     function setCurlOption($option, $value)
     {
-        $this->debug("setCurlOption option=$option, value=");
+//        $this->debug("setCurlOption option=$option, value=$value");
         $this->appendDebug($this->varDump($value));
         $this->curl_options[$option] = $value;
     }
